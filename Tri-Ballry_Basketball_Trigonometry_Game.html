@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tri-Ballry - Basketball Trigonometry Challenge</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Teko', 'sans-serif'],
+                    },
+                    colors: {
+                        bball: {
+                            orange: '#f97316',
+                            darkorange: '#ea580c',
+                            wood: '#d97706',
+                            court: '#1e293b',
+                            gold: '#fbbf24',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Styles & Basketball Animations */
+        body {
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        .court-pattern {
+            background-color: #111827;
+            background-image: 
+                radial-gradient(#374151 1px, transparent 0),
+                linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px, 40px 40px, 40px 40px;
+        }
+
+        .court-wood {
+            background: linear-gradient(135deg, #b45309 0%, #78350f 100%);
+            border: 4px solid #f97316;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .wood-texture {
+            background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 40px);
+        }
+
+        /* Basketball Shot Animation */
+        @keyframes shootSwish {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            50% { transform: translate(120px, -180px) scale(1.3); opacity: 1; }
+            80% { transform: translate(250px, -120px) scale(0.9); opacity: 1; }
+            100% { transform: translate(265px, 20px) scale(0.7); opacity: 0; }
+        }
+
+        @keyframes shootMiss {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            50% { transform: translate(120px, -180px) scale(1.3); opacity: 1; }
+            75% { transform: translate(240px, -140px) scale(1); opacity: 1; }
+            85% { transform: translate(220px, -80px) scale(0.9) rotate(45deg); opacity: 0.8; }
+            100% { transform: translate(200px, 100px) scale(0.6) rotate(180deg); opacity: 0; }
+        }
+
+        .animate-swish {
+            animation: shootSwish 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        .animate-miss {
+            animation: shootMiss 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        /* Glowing Effects */
+        .glow-orange {
+            box-shadow: 0 0 25px rgba(249, 115, 22, 0.5);
+        }
+
+        .glow-gold {
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.6);
+        }
+
+        .scoreboard-digital {
+            font-family: 'Teko', sans-serif;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px currentColor;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased text-slate-100 flex flex-col justify-between min-h-screen">
+
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-orange-500/30">
+                    <i class="fa-solid fa-basketball"></i>
+                </div>
+                <div>
+                    <h1 class="font-display text-3xl font-bold tracking-wider leading-none text-orange-500 uppercase">TRI-BALLRY</h1>
+                    <p class="text-xs text-slate-400 font-medium">Trigonometry x Basketball Challenge</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="btn-reference" onclick="toggleReferenceModal(true)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-orange-400"></i>
+                    <span>Formulas</span>
+                </button>
+                <button id="btn-reset-app" onclick="confirmReset()" class="px-3 py-1.5 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 rounded-lg text-sm font-semibold transition flex items-center gap-2 hidden">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span class="hidden sm:inline">Reset</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-6xl w-full mx-auto p-4 flex-grow flex flex-col justify-center">
+
+        <section id="screen-intro" class="court-pattern rounded-3xl border-2 border-slate-800 p-6 md:p-10 shadow-2xl my-auto">
+            <div class="max-w-3xl mx-auto text-center space-y-8">
+                
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 font-semibold text-sm">
+                    <i class="fa-solid fa-graduation-cap"></i> Interactive Math Game
+                </div>
+
+                <div class="space-y-4">
+                    <h2 class="font-display text-6xl md:text-8xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500 uppercase">
+                        TRI-BALLRY
+                    </h2>
+                    <p class="text-slate-300 text-lg md:text-xl leading-relaxed font-normal max-w-2xl mx-auto">
+                        Combine real-world court geometry with Trigonometric Laws! Solve <strong class="text-orange-400">Law of Sines</strong> and <strong class="text-orange-400">Law of Cosines</strong> problems to shoot hoops and outscore your opponent.
+                    </p>
+                </div>
+
+                <!-- Rules & Match Mechanics Highlights -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                    <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-lg">
+                            1
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-lg">2-Player Turn Match</h3>
+                        <p class="text-slate-400 text-sm">Each player gets a dedicated <strong>5-minute turn</strong> to build their highest score.</p>
+                    </div>
+
+                    <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
+                        <div class="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold text-lg">
+                            2
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-lg">Pick Law & Difficulty</h3>
+                        <p class="text-slate-400 text-sm">Choose Law of Sines or Cosines. Earn points per shot: <strong>Easy (1pt)</strong>, <strong>Medium (3pt)</strong>, or <strong>Hard (5pt)</strong>.</p>
+                    </div>
+
+                    <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl space-y-2">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg">
+                            3
+                        </div>
+                        <h3 class="font-bold text-slate-100 text-lg">Infinite Questions</h3>
+                        <p class="text-slate-400 text-sm">Every shot is procedurally generated with real basketball court scenarios!</p>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="pt-4">
+                    <button onclick="startGameSetup()" class="px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-slate-950 font-black text-2xl rounded-2xl shadow-xl hover:shadow-orange-500/20 transform hover:-translate-y-1 transition duration-200 flex items-center gap-3 mx-auto uppercase tracking-wider">
+                        <i class="fa-solid fa-play"></i> Start Match Setup
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-setup" class="court-pattern rounded-3xl border-2 border-slate-800 p-6 md:p-10 shadow-2xl hidden max-w-xl mx-auto w-full">
+            <h2 class="font-display text-4xl font-bold text-center text-orange-400 mb-6 uppercase tracking-wider">Enter Player Names</h2>
+            
+            <form onsubmit="confirmPlayerSetup(event)" class="space-y-6">
+                <div class="space-y-2">
+                    <label for="p1-name" class="block text-sm font-semibold text-slate-300">Player 1 Name</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-orange-400 font-bold"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="p1-name" value="Shooter 1" required class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-orange-500 transition font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="p2-name" class="block text-sm font-semibold text-slate-300">Player 2 Name</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-amber-400 font-bold"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="p2-name" value="Shooter 2" required class="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-amber-500 transition font-medium">
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1">
+                    <p class="font-bold text-slate-200"><i class="fa-solid fa-clock text-orange-400"></i> Match Format Rules:</p>
+                    <p>• Player 1 shoots for 5 uninterrupted minutes.</p>
+                    <p>• Turn passes to Player 2 for 5 minutes.</p>
+                    <p>• Player with the most points wins!</p>
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xl rounded-xl shadow-lg transition uppercase tracking-wider">
+                    Begin Player 1's Turn <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </form>
+        </section>
+
+        <section id="screen-transition" class="court-pattern rounded-3xl border-2 border-orange-500/50 p-8 shadow-2xl hidden max-w-2xl mx-auto w-full text-center space-y-6">
+            <div class="w-20 h-20 bg-amber-500/20 text-amber-400 rounded-full flex items-center justify-center text-4xl mx-auto border border-amber-500/40">
+                <i class="fa-solid fa-handshake"></i>
+            </div>
+
+            <div class="space-y-2">
+                <span class="text-xs uppercase font-bold tracking-widest text-orange-400">Half-Time / Pass The Controls</span>
+                <h2 class="font-display text-5xl font-bold text-slate-100">TIME'S UP FOR <span id="trans-p1-name" class="text-orange-400">PLAYER 1</span>!</h2>
+                <p class="text-slate-300">Score Achieved: <span id="trans-p1-score" class="text-3xl font-display font-bold text-amber-400">0</span> points</p>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl space-y-3">
+                <h3 class="font-bold text-slate-200 text-xl">Get Ready, <span id="trans-p2-name" class="text-amber-400">PLAYER 2</span>!</h3>
+                <p class="text-slate-400 text-sm">Pass the device to Player 2. You will have 5 minutes to beat the leader score!</p>
+            </div>
+
+            <button onclick="startPlayer2Turn()" class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-2xl rounded-2xl shadow-xl hover:from-amber-600 hover:to-orange-600 transition uppercase tracking-wider">
+                Start <span id="trans-p2-btn-name">Player 2</span>'s Turn <i class="fa-solid fa-play ml-2"></i>
+            </button>
+        </section>
+
+        <section id="screen-gameplay" class="hidden space-y-4">
+            
+            <!-- Live Scoreboard Header -->
+            <div class="court-wood rounded-2xl p-4 shadow-xl wood-texture">
+                <div class="grid grid-cols-3 items-center gap-2 text-center">
+                    
+                    <!-- Player 1 Status Card -->
+                    <div id="card-p1" class="bg-slate-950/80 p-3 rounded-xl border-2 border-orange-500/80 shadow-md">
+                        <span id="label-p1" class="block text-xs font-bold text-orange-400 truncate uppercase">PLAYER 1</span>
+                        <div id="score-p1" class="scoreboard-digital text-4xl md:text-5xl font-bold text-orange-400">0</div>
+                        <span id="badge-p1" class="inline-block text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 font-semibold mt-1">ACTIVE SHOOTER</span>
+                    </div>
+
+                    <!-- Timer Center Box -->
+                    <div class="bg-slate-950/90 p-3 rounded-xl border border-slate-800 flex flex-col items-center justify-center">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400"><i class="fa-solid fa-clock text-amber-400 mr-1"></i> Time Left</span>
+                        <div id="game-timer" class="scoreboard-digital text-4xl md:text-6xl font-bold text-red-500 leading-none my-1">05:00</div>
+                        <span id="active-turn-indicator" class="text-xs font-semibold text-amber-300 truncate">Turn 1 of 2</span>
+                    </div>
+
+                    <!-- Player 2 Status Card -->
+                    <div id="card-p2" class="bg-slate-950/50 p-3 rounded-xl border border-slate-800/80 opacity-60">
+                        <span id="label-p2" class="block text-xs font-bold text-slate-400 truncate uppercase">PLAYER 2</span>
+                        <div id="score-p2" class="scoreboard-digital text-4xl md:text-5xl font-bold text-slate-400">0</div>
+                        <span id="badge-p2" class="inline-block text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 font-semibold mt-1">WAITING</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Controls: Topic Law & Difficulty Selection Bar -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+                
+                <!-- Topic Selection -->
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <span class="text-xs font-bold uppercase text-slate-400 whitespace-nowrap">Topic:</span>
+                    <div class="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 w-full md:w-auto">
+                        <button id="btn-law-sines" onclick="selectTopic('sines')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-orange-500 text-slate-950 shadow">
+                            Law of Sines
+                        </button>
+                        <button id="btn-law-cosines" onclick="selectTopic('cosines')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-slate-200">
+                            Law of Cosines
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Difficulty Selection -->
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <span class="text-xs font-bold uppercase text-slate-400 whitespace-nowrap">Difficulty:</span>
+                    <div class="grid grid-cols-3 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 w-full md:w-auto">
+                        <button id="btn-diff-easy" onclick="selectDifficulty('easy')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-emerald-500 text-slate-950">
+                            Easy (1pt)
+                        </button>
+                        <button id="btn-diff-medium" onclick="selectDifficulty('medium')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-slate-200">
+                            Med (3pt)
+                        </button>
+                        <button id="btn-diff-hard" onclick="selectDifficulty('hard')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-slate-200">
+                            Hard (5pt)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                
+                <!-- Math Scenario Card -->
+                <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-6">
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span id="tag-law" class="text-xs font-bold px-3 py-1 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                                LAW OF SINES
+                            </span>
+                            <span id="tag-difficulty" class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                EASY (+1 PT)
+                            </span>
+                        </div>
+
+                        <h3 id="problem-title" class="font-display text-2xl font-bold text-slate-100">
+                            Pass to the Point Guard
+                        </h3>
+
+                        <p id="problem-text" class="text-slate-300 text-base leading-relaxed font-medium">
+                            Generating court scenario...
+                        </p>
+                    </div>
+
+                    <!-- Dynamic Math Diagram / SVG Visual -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 flex items-center justify-center min-h-[160px] relative overflow-hidden">
+                        <svg id="trig-diagram" class="w-full h-40 max-w-sm text-slate-200" viewBox="0 0 300 150">
+                            <!-- SVG dynamically rendered in JS -->
+                        </svg>
+                    </div>
+
+                    <!-- Formula Hint Bar -->
+                    <div class="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-400 text-sm"></i>
+                        <span id="formula-hint">Formula: a/sin(A) = b/sin(B)</span>
+                    </div>
+
+                </div>
+
+                <!-- Basketball Hoop Court & Multiple Choice Stage -->
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    
+                    <!-- Animated Hoop Stage -->
+                    <div class="court-pattern border-2 border-slate-800 rounded-3xl p-4 relative min-h-[180px] flex items-center justify-between overflow-hidden shadow-inner">
+                        
+                        <!-- Shooter Avatar -->
+                        <div class="relative z-10 flex flex-col items-center">
+                            <div id="player-ball" class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-slate-950 text-2xl shadow-lg border-2 border-orange-300 font-bold">
+                                <i class="fa-solid fa-basketball"></i>
+                            </div>
+                            <span id="shooter-name-badge" class="text-[10px] font-bold text-orange-400 mt-1 bg-slate-900/80 px-2 py-0.5 rounded-full border border-slate-700">Shooter</span>
+                        </div>
+
+                        <!-- Feedback Popup Alert -->
+                        <div id="shot-feedback" class="absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm z-20 opacity-0 pointer-events-none transition duration-300">
+                            <div class="text-center space-y-1">
+                                <div id="feedback-icon" class="text-5xl">🏀</div>
+                                <div id="feedback-text" class="font-display text-4xl font-black uppercase tracking-wider text-emerald-400">SWISH!</div>
+                                <div id="feedback-sub" class="text-xs text-slate-300 font-bold">+1 Point Earned</div>
+                            </div>
+                        </div>
+
+                        <!-- Hoop Target Graphics -->
+                        <div class="relative z-10 flex flex-col items-center">
+                            <!-- Backboard -->
+                            <div class="w-20 h-14 bg-white/90 rounded-lg border-4 border-red-600 flex items-center justify-center shadow-md">
+                                <div class="w-8 h-6 border-2 border-red-600 bg-transparent"></div>
+                            </div>
+                            <!-- Rim & Net -->
+                            <div class="w-10 h-3 bg-red-600 rounded-full -mt-2 shadow-md relative flex justify-center">
+                                <div class="w-8 h-8 border-t-2 border-dashed border-white/80 bg-gradient-to-b from-white/20 to-transparent"></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Choices Buttons -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3 flex-grow flex flex-col justify-center">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 text-center block">Select Shot Target (Answer):</span>
+                        
+                        <div id="options-container" class="space-y-2.5">
+                            <!-- Dynamic Choice Buttons generated here -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section id="screen-gameover" class="court-pattern rounded-3xl border-2 border-amber-500/60 p-6 md:p-10 shadow-2xl hidden max-w-3xl mx-auto w-full text-center space-y-8 my-auto">
+            
+            <div class="space-y-3">
+                <div class="w-20 h-20 rounded-full bg-amber-500/20 text-amber-400 border-2 border-amber-500/50 flex items-center justify-center text-4xl mx-auto glow-gold animate-bounce">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <span class="text-xs uppercase font-bold tracking-widest text-amber-400">FINAL BUZZER</span>
+                <h2 id="winner-title" class="font-display text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-400 to-amber-500 uppercase">
+                    PLAYER 1 WINS!
+                </h2>
+                <p id="winner-subtitle" class="text-slate-300 font-medium">An unbelievable trigonometric performance on the court!</p>
+            </div>
+
+            <!-- Final Comparison Scoreboard -->
+            <div class="grid grid-cols-2 gap-4 max-w-lg mx-auto">
+                <div id="gameover-card-p1" class="bg-slate-900/90 p-5 rounded-2xl border-2 border-slate-800 text-center space-y-2">
+                    <span id="go-p1-name" class="block font-bold text-slate-300 truncate">PLAYER 1</span>
+                    <div id="go-p1-score" class="scoreboard-digital text-5xl font-bold text-orange-400">0</div>
+                    <div class="text-xs text-slate-400 space-y-1 pt-2 border-t border-slate-800">
+                        <p>Accuracy: <strong id="go-p1-acc" class="text-slate-200">0%</strong></p>
+                        <p>Shots Made: <strong id="go-p1-shots" class="text-slate-200">0</strong></p>
+                    </div>
+                </div>
+
+                <div id="gameover-card-p2" class="bg-slate-900/90 p-5 rounded-2xl border-2 border-slate-800 text-center space-y-2">
+                    <span id="go-p2-name" class="block font-bold text-slate-300 truncate">PLAYER 2</span>
+                    <div id="go-p2-score" class="scoreboard-digital text-5xl font-bold text-amber-400">0</div>
+                    <div class="text-xs text-slate-400 space-y-1 pt-2 border-t border-slate-800">
+                        <p>Accuracy: <strong id="go-p2-acc" class="text-slate-200">0%</strong></p>
+                        <p>Shots Made: <strong id="go-p2-shots" class="text-slate-200">0</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restart Options -->
+            <div class="pt-4 flex flex-wrap justify-center gap-4">
+                <button onclick="restartMatch()" class="px-8 py-4 bg-orange-500 hover:bg-orange-600 text-slate-950 font-black text-xl rounded-2xl shadow-xl transition uppercase tracking-wider">
+                    <i class="fa-solid fa-rotate-right mr-2"></i> Play Rematch
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="modal-reference" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl relative">
+            <button onclick="toggleReferenceModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl p-2">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                <i class="fa-solid fa-book-open text-orange-400 text-2xl"></i>
+                <h3 class="font-display text-3xl font-bold text-slate-100 uppercase">Trigonometry Playbook</h3>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Law of Sines Card -->
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-orange-400 text-lg">Law of Sines</h4>
+                        <span class="text-xs bg-orange-500/20 text-orange-300 px-2.5 py-1 rounded-full">AAS, ASA, or SSA</span>
+                    </div>
+                    <div class="text-center py-2 bg-slate-900 rounded-xl border border-slate-800 font-mono text-lg text-amber-300">
+                        a / sin(A) = b / sin(B) = c / sin(C)
+                    </div>
+                    <p class="text-xs text-slate-400">Use when you know two angles and one side, or two sides and a non-included angle.</p>
+                </div>
+
+                <!-- Law of Cosines Card -->
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-amber-400 text-lg">Law of Cosines</h4>
+                        <span class="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full">SAS or SSS</span>
+                    </div>
+                    <div class="text-center py-2 bg-slate-900 rounded-xl border border-slate-800 font-mono text-lg text-amber-300 space-y-1">
+                        <div>c² = a² + b² - 2ab · cos(C)</div>
+                        <div class="text-sm text-slate-400">or cos(C) = (a² + b² - c²) / (2ab)</div>
+                    </div>
+                    <p class="text-xs text-slate-400">Use when you know two sides and the included angle, or all three sides to find an angle.</p>
+                </div>
+            </div>
+
+            <button onclick="toggleReferenceModal(false)" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl transition">
+                Back to Court
+            </button>
+        </div>
+    </div>
+
+    <footer class="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
+        Tri-Ballry • Basketball Math Learning Experience
+    </footer>
+
+    <script>
+        // Global Game State
+        const state = {
+            players: [
+                { name: "Player 1", score: 0, attempts: 0, correct: 0 },
+                { name: "Player 2", score: 0, attempts: 0, correct: 0 }
+            ],
+            activePlayerIndex: 0, // 0 for Player 1, 1 for Player 2
+            currentTopic: 'sines', // 'sines' or 'cosines'
+            currentDifficulty: 'easy', // 'easy', 'medium', 'hard'
+            timerSeconds: 300, // 5 minutes = 300s
+            timerInterval: null,
+            currentProblem: null,
+            isAnswering: false
+        };
+
+        // Utility: Degrees to Radians and Radians to Degrees
+        const toRad = deg => deg * (Math.PI / 180);
+        const toDeg = rad => rad * (180 / Math.PI);
+        const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        const randomFloat = (min, max, decimals = 1) => parseFloat((Math.random() * (max - min) + min).toFixed(decimals));
+
+        // Screen Navigation
+        function showScreen(screenId) {
+            ['screen-intro', 'screen-setup', 'screen-transition', 'screen-gameplay', 'screen-gameover'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+
+            const resetBtn = document.getElementById('btn-reset-app');
+            if (screenId === 'screen-gameplay' || screenId === 'screen-transition') {
+                resetBtn.classList.remove('hidden');
+            } else {
+                resetBtn.classList.add('hidden');
+            }
+        }
+
+        function toggleReferenceModal(show) {
+            document.getElementById('modal-reference').classList.toggle('hidden', !show);
+        }
+
+        function startGameSetup() {
+            showScreen('screen-setup');
+        }
+
+        function confirmPlayerSetup(e) {
+            e.preventDefault();
+            const p1 = document.getElementById('p1-name').value.trim() || "Shooter 1";
+            const p2 = document.getElementById('p2-name').value.trim() || "Shooter 2";
+
+            state.players[0].name = p1;
+            state.players[1].name = p2;
+            state.players[0].score = 0;
+            state.players[1].score = 0;
+            state.players[0].attempts = 0;
+            state.players[1].attempts = 0;
+            state.players[0].correct = 0;
+            state.players[1].correct = 0;
+
+            state.activePlayerIndex = 0;
+            startTurn();
+        }
+
+        function startTurn() {
+            state.timerSeconds = 300; // 5 mins
+            state.isAnswering = false;
+            updateScoreboardUI();
+            showScreen('screen-gameplay');
+            generateNewQuestion();
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(state.timerInterval);
+            updateTimerDisplay();
+
+            state.timerInterval = setInterval(() => {
+                state.timerSeconds--;
+                updateTimerDisplay();
+
+                if (state.timerSeconds <= 0) {
+                    clearInterval(state.timerInterval);
+                    handleTurnEnd();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(state.timerSeconds / 60);
+            const secs = state.timerSeconds % 60;
+            const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            const timerEl = document.getElementById('game-timer');
+            timerEl.textContent = formatted;
+
+            if (state.timerSeconds <= 30) {
+                timerEl.classList.remove('text-red-500');
+                timerEl.classList.add('text-amber-400', 'animate-pulse');
+            } else {
+                timerEl.classList.add('text-red-500');
+                timerEl.classList.remove('text-amber-400', 'animate-pulse');
+            }
+        }
+
+        function handleTurnEnd() {
+            if (state.activePlayerIndex === 0) {
+                // Pass to Player 2
+                document.getElementById('trans-p1-name').textContent = state.players[0].name;
+                document.getElementById('trans-p1-score').textContent = state.players[0].score;
+                document.getElementById('trans-p2-name').textContent = state.players[1].name;
+                document.getElementById('trans-p2-btn-name').textContent = state.players[1].name;
+                showScreen('screen-transition');
+            } else {
+                // Game Over
+                endGame();
+            }
+        }
+
+        function startPlayer2Turn() {
+            state.activePlayerIndex = 1;
+            startTurn();
+        }
+
+        function updateScoreboardUI() {
+            const p1 = state.players[0];
+            const p2 = state.players[1];
+
+            document.getElementById('label-p1').textContent = p1.name;
+            document.getElementById('score-p1').textContent = p1.score;
+
+            document.getElementById('label-p2').textContent = p2.name;
+            document.getElementById('score-p2').textContent = p2.score;
+
+            const cardP1 = document.getElementById('card-p1');
+            const cardP2 = document.getElementById('card-p2');
+            const badgeP1 = document.getElementById('badge-p1');
+            const badgeP2 = document.getElementById('badge-p2');
+
+            if (state.activePlayerIndex === 0) {
+                cardP1.className = "bg-slate-950/90 p-3 rounded-xl border-2 border-orange-500 shadow-md";
+                cardP2.className = "bg-slate-950/50 p-3 rounded-xl border border-slate-800 opacity-60";
+                badgeP1.textContent = "ACTIVE SHOOTER";
+                badgeP1.className = "inline-block text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 font-semibold mt-1";
+                badgeP2.textContent = "WAITING";
+                badgeP2.className = "inline-block text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 font-semibold mt-1";
+                document.getElementById('active-turn-indicator').textContent = "Turn 1 of 2";
+                document.getElementById('shooter-name-badge').textContent = p1.name;
+            } else {
+                cardP2.className = "bg-slate-950/90 p-3 rounded-xl border-2 border-amber-500 shadow-md";
+                cardP1.className = "bg-slate-950/50 p-3 rounded-xl border border-slate-800 opacity-60";
+                badgeP2.textContent = "ACTIVE SHOOTER";
+                badgeP2.className = "inline-block text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold mt-1";
+                badgeP1.textContent = "WAITING";
+                badgeP1.className = "inline-block text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 font-semibold mt-1";
+                document.getElementById('active-turn-indicator').textContent = "Turn 2 of 2";
+                document.getElementById('shooter-name-badge').textContent = p2.name;
+            }
+        }
+
+        // Topic & Difficulty Selection Handlers
+        function selectTopic(topic) {
+            state.currentTopic = topic;
+            
+            const btnSines = document.getElementById('btn-law-sines');
+            const btnCosines = document.getElementById('btn-law-cosines');
+
+            if (topic === 'sines') {
+                btnSines.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-orange-500 text-slate-950 shadow";
+                btnCosines.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-slate-200";
+            } else {
+                btnCosines.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-orange-500 text-slate-950 shadow";
+                btnSines.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-slate-200";
+            }
+
+            generateNewQuestion();
+        }
+
+        function selectDifficulty(diff) {
+            state.currentDifficulty = diff;
+            
+            ['easy', 'medium', 'hard'].forEach(d => {
+                const btn = document.getElementById(`btn-diff-${d}`);
+                if (d === diff) {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-emerald-500 text-slate-950 shadow";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition text-slate-400 hover:text-slate-200";
+                }
+            });
+
+            generateNewQuestion();
+        }
+
+        function generateNewQuestion() {
+            state.isAnswering = false;
+            const law = state.currentTopic;
+            const diff = state.currentDifficulty;
+
+            // Header indicators
+            document.getElementById('tag-law').textContent = law === 'sines' ? 'LAW OF SINES' : 'LAW OF COSINES';
+            
+            let ptsText = "1 PT";
+            let diffColor = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+            if (diff === 'medium') { ptsText = "3 PTS"; diffColor = "bg-amber-500/20 text-amber-400 border-amber-500/30"; }
+            if (diff === 'hard') { ptsText = "5 PTS"; diffColor = "bg-rose-500/20 text-rose-400 border-rose-500/30"; }
+
+            const diffTag = document.getElementById('tag-difficulty');
+            diffTag.textContent = `${diff.toUpperCase()} (+${ptsText})`;
+            diffTag.className = `text-xs font-bold px-3 py-1 rounded-full border ${diffColor}`;
+
+            let problemData = null;
+
+            if (law === 'sines') {
+                problemData = generateLawOfSinesProblem(diff);
+                document.getElementById('formula-hint').textContent = "Formula: a / sin(A) = b / sin(B)";
+            } else {
+                problemData = generateLawOfCosinesProblem(diff);
+                document.getElementById('formula-hint').textContent = "Formula: c² = a² + b² - 2ab · cos(C) or cos(C) = (a² + b² - c²) / (2ab)";
+            }
+
+            state.currentProblem = problemData;
+
+            // Render UI
+            document.getElementById('problem-title').textContent = problemData.title;
+            document.getElementById('problem-text').textContent = problemData.question;
+
+            renderSVGDiagram(problemData.diagramData);
+            renderOptions(problemData.correctAnswer, problemData.unit);
+        }
+
+        function generateLawOfSinesProblem(difficulty) {
+            if (difficulty === 'easy') {
+                // Simple AAS: Given A, B, and side a -> Find side b
+                const angleA = randomInt(35, 75);
+                const angleB = randomInt(35, 180 - angleA - 25);
+                const sideA = randomInt(12, 30); // feet or meters
+
+                // b = a * sin(B) / sin(A)
+                const sideB = (sideA * Math.sin(toRad(angleB))) / Math.sin(toRad(angleA));
+                const ans = parseFloat(sideB.toFixed(1));
+
+                return {
+                    title: "Point Guard Chest Pass",
+                    question: `A player at Position A passes to Position B. Angle A is ${angleA}°, Angle B is ${angleB}°, and side a (opposite to angle A) measures ${sideA} ft. Find distance b (distance from shooter to point B).`,
+                    correctAnswer: ans,
+                    unit: "ft",
+                    diagramData: { type: "triangle", labelA: `A (${angleA}°)`, labelB: `B (${angleB}°)`, labelC: "Hoop", sideA: `${sideA} ft`, sideB: "? ft", sideC: "" }
+                };
+            } else if (difficulty === 'medium') {
+                // ASA: Given A, B, and side c (between them) -> Find side a to basket
+                const angleA = randomInt(40, 70);
+                const angleB = randomInt(40, 70);
+                const angleC = 180 - angleA - angleB;
+                const sideC = randomInt(20, 45); // distance between players
+
+                // a = c * sin(A) / sin(C)
+                const sideA = (sideC * Math.sin(toRad(angleA))) / Math.sin(toRad(angleC));
+                const ans = parseFloat(sideA.toFixed(1));
+
+                return {
+                    title: "Three-Point Court Spread",
+                    question: `Two defenders at A and B are ${sideC} ft apart. The ball-handler at C forms angle A = ${angleA}° and angle B = ${angleB}°. Calculate distance 'a' from Defender B to the ball-handler.`,
+                    correctAnswer: ans,
+                    unit: "ft",
+                    diagramData: { type: "triangle", labelA: `A (${angleA}°)`, labelB: `B (${angleB}°)`, labelC: `C (${angleC}°)`, sideA: "? ft", sideB: "", sideC: `${sideC} ft` }
+                };
+            } else {
+                // Hard: Finding Shooting Angle theta (inverse sine)
+                const sideA = randomInt(15, 30);
+                const angleA = randomInt(30, 55);
+                const sideB = randomInt(16, 28);
+
+                // sin(B) = b * sin(A) / a
+                const sinB = (sideB * Math.sin(toRad(angleA))) / sideA;
+                
+                // Ensure valid sin ratio <= 0.95 to avoid edge cases
+                if (sinB >= 0.95) return generateLawOfSinesProblem('hard');
+
+                const angleB = toDeg(Math.asin(sinB));
+                const ans = parseFloat(angleB.toFixed(1));
+
+                return {
+                    title: "Calculating Bank Shot Angle",
+                    question: `A perimeter shooter attempts a pass across the key. Side a = ${sideA} ft opposite Angle A = ${angleA}°. Side b = ${sideB} ft opposite Angle B. Calculate Angle B (θ) in degrees required for accuracy.`,
+                    correctAnswer: ans,
+                    unit: "°",
+                    diagramData: { type: "triangle", labelA: `A (${angleA}°)`, labelB: "B (θ?)", labelC: "Hoop", sideA: `${sideA} ft`, sideB: `${sideB} ft`, sideC: "" }
+                };
+            }
+        }
+
+        function generateLawOfCosinesProblem(difficulty) {
+            if (difficulty === 'easy') {
+                // Direct SAS -> Find missing side c
+                const sideA = randomInt(10, 25);
+                const sideB = randomInt(10, 25);
+                const angleC = randomInt(40, 100);
+
+                // c² = a² + b² - 2ab cos(C)
+                const cSq = Math.pow(sideA, 2) + Math.pow(sideB, 2) - (2 * sideA * sideB * Math.cos(toRad(angleC)));
+                const sideC = Math.sqrt(cSq);
+                const ans = parseFloat(sideC.toFixed(1));
+
+                return {
+                    title: "Direct Passing Distance",
+                    question: `Player 1 is ${sideA} ft from the basket, and Player 2 is ${sideB} ft from the basket. The angle between them at the basket is ${angleC}°. Find the direct distance (c) between Player 1 and Player 2.`,
+                    correctAnswer: ans,
+                    unit: "ft",
+                    diagramData: { type: "triangle", labelA: "P1", labelB: "P2", labelC: `Basket (${angleC}°)`, sideA: `${sideB} ft`, sideB: `${sideA} ft`, sideC: "? ft" }
+                };
+            } else if (difficulty === 'medium') {
+                // Court Shot Trajectory (SAS real dimensions)
+                const sideA = randomInt(18, 35);
+                const sideB = randomInt(15, 30);
+                const angleC = randomInt(30, 80);
+
+                const cSq = Math.pow(sideA, 2) + Math.pow(sideB, 2) - (2 * sideA * sideB * Math.cos(toRad(angleC)));
+                const sideC = Math.sqrt(cSq);
+                const ans = parseFloat(sideC.toFixed(1));
+
+                return {
+                    title: "Fast-Break Wing Separation",
+                    question: `During a fast break, two wing players run routes of ${sideA} meters and ${sideB} meters from the point guard at an angle of ${angleC}°. How far apart are the two wings?`,
+                    correctAnswer: ans,
+                    unit: "m",
+                    diagramData: { type: "triangle", labelA: "Wing 1", labelB: "Wing 2", labelC: `PG (${angleC}°)`, sideA: `${sideB} m`, sideB: `${sideA} m`, sideC: "? m" }
+                };
+            } else {
+                // Hard: SSS -> Calculate Shooting Angle C using inverse cosine
+                const sideA = randomInt(15, 30);
+                const sideB = randomInt(15, 30);
+                // Ensure triangle inequality: c < a + b and c > |a - b|
+                const minC = Math.abs(sideA - sideB) + 3;
+                const maxC = (sideA + sideB) - 3;
+                const sideC = randomInt(minC, maxC);
+
+                // cos(C) = (a² + b² - c²) / (2ab)
+                const cosC = (Math.pow(sideA, 2) + Math.pow(sideB, 2) - Math.pow(sideC, 2)) / (2 * sideA * sideB);
+                
+                if (cosC < -0.95 || cosC > 0.95) return generateLawOfCosinesProblem('hard');
+
+                const angleC = toDeg(Math.acos(cosC));
+                const ans = parseFloat(angleC.toFixed(1));
+
+                return {
+                    title: "Defensive Triangle Shooting Angle",
+                    question: `A player shoots with defenders positioned such that sides are a = ${sideA} ft, b = ${sideB} ft, and opposite side c = ${sideC} ft. Calculate the shooting angle C (θ) in degrees.`,
+                    correctAnswer: ans,
+                    unit: "°",
+                    diagramData: { type: "triangle", labelA: "P1", labelB: "P2", labelC: "Shooter (θ?)", sideA: `${sideA} ft`, sideB: `${sideB} ft`, sideC: `${sideC} ft` }
+                };
+            }
+        }
+
+        function renderSVGDiagram(data) {
+            const svg = document.getElementById('trig-diagram');
+            
+            // Triangle Coordinates
+            const pA = { x: 50, y: 120 };
+            const pB = { x: 250, y: 120 };
+            const pC = { x: 140, y: 30 };
+
+            svg.innerHTML = `
+                <!-- Basketball Court Lines background -->
+                <line x1="20" y1="135" x2="280" y2="135" stroke="#334155" stroke-width="3"/>
+                
+                <!-- Triangle Lines -->
+                <polygon points="${pA.x},${pA.y} ${pB.x},${pB.y} ${pC.x},${pC.y}" fill="rgba(249, 115, 22, 0.1)" stroke="#f97316" stroke-width="2.5" stroke-dasharray="none" />
+                
+                <!-- Vertices Points -->
+                <circle cx="${pA.x}" cy="${pA.y}" r="5" fill="#38bdf8" />
+                <circle cx="${pB.x}" cy="${pB.y}" r="5" fill="#38bdf8" />
+                <circle cx="${pC.x}" cy="${pC.y}" r="5" fill="#fbbf24" />
+
+                <!-- Labels -->
+                <text x="${pA.x - 20}" y="${pA.y + 18}" fill="#94a3b8" font-size="11" font-weight="bold">${data.labelA}</text>
+                <text x="${pB.x - 10}" y="${pB.y + 18}" fill="#94a3b8" font-size="11" font-weight="bold">${data.labelB}</text>
+                <text x="${pC.x - 15}" y="${pC.y - 10}" fill="#fbbf24" font-size="11" font-weight="bold">${data.labelC}</text>
+
+                <!-- Side Labels -->
+                <text x="90" y="70" fill="#f8fafc" font-size="11" font-weight="bold">${data.sideB || ''}</text>
+                <text x="200" y="70" fill="#f8fafc" font-size="11" font-weight="bold">${data.sideA || ''}</text>
+                <text x="140" y="132" fill="#f8fafc" font-size="11" font-weight="bold">${data.sideC || ''}</text>
+            `;
+        }
+
+        function renderOptions(correctVal, unit) {
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            // Generate 2 distractors close to correct value
+            const delta1 = (Math.random() > 0.5 ? 1 : -1) * (randomFloat(1.5, 4.0, 1));
+            const delta2 = (Math.random() > 0.5 ? 1 : -1) * (randomFloat(4.5, 8.0, 1));
+
+            let d1 = parseFloat((correctVal + delta1).toFixed(1));
+            let d2 = parseFloat((correctVal + delta2).toFixed(1));
+
+            if (d1 <= 0) d1 = parseFloat((correctVal + 2.5).toFixed(1));
+            if (d2 <= 0 || d2 === d1) d2 = parseFloat((correctVal + 5.2).toFixed(1));
+
+            const choices = [
+                { val: correctVal, isCorrect: true },
+                { val: d1, isCorrect: false },
+                { val: d2, isCorrect: false }
+            ];
+
+            // Shuffle
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach((choice, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full py-3.5 px-4 bg-slate-950 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-slate-100 font-bold text-base transition flex items-center justify-between group shadow-md";
+                btn.onclick = () => submitAnswer(choice.isCorrect, btn);
+
+                btn.innerHTML = `
+                    <span class="flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-lg bg-slate-800 text-orange-400 font-bold text-xs flex items-center justify-center border border-slate-700 group-hover:bg-orange-500 group-hover:text-slate-950 transition">
+                            ${String.fromCharCode(65 + idx)}
+                        </span>
+                        <span class="text-lg">${choice.val} ${unit}</span>
+                    </span>
+                    <i class="fa-solid fa-circle-chevron-right text-slate-600 group-hover:text-orange-400 transition"></i>
+                `;
+
+                container.appendChild(btn);
+            });
+        }
+
+        function submitAnswer(isCorrect, clickedBtn) {
+            if (state.isAnswering) return;
+            state.isAnswering = true;
+
+            const player = state.players[state.activePlayerIndex];
+            player.attempts++;
+
+            let pointsToAdd = 1;
+            if (state.currentDifficulty === 'medium') pointsToAdd = 3;
+            if (state.currentDifficulty === 'hard') pointsToAdd = 5;
+
+            const ball = document.getElementById('player-ball');
+            const feedback = document.getElementById('shot-feedback');
+            const feedbackIcon = document.getElementById('feedback-icon');
+            const feedbackText = document.getElementById('feedback-text');
+            const feedbackSub = document.getElementById('feedback-sub');
+
+            if (isCorrect) {
+                player.correct++;
+                player.score += pointsToAdd;
+                updateScoreboardUI();
+
+                // Button highlight
+                clickedBtn.classList.remove('bg-slate-950', 'border-slate-700/80');
+                clickedBtn.classList.add('bg-emerald-950', 'border-emerald-500', 'text-emerald-200');
+
+                // Basketball shot swish animation
+                ball.classList.add('animate-swish');
+
+                feedbackIcon.textContent = "🏀🔥";
+                feedbackText.textContent = "SWISH!";
+                feedbackText.className = "font-display text-4xl font-black uppercase tracking-wider text-emerald-400";
+                feedbackSub.textContent = `+${pointsToAdd} Point${pointsToAdd > 1 ? 's' : ''} Scored!`;
+            } else {
+                clickedBtn.classList.remove('bg-slate-950', 'border-slate-700/80');
+                clickedBtn.classList.add('bg-rose-950', 'border-rose-500', 'text-rose-200');
+
+                // Basketball miss animation
+                ball.classList.add('animate-miss');
+
+                feedbackIcon.textContent = "💥";
+                feedbackText.textContent = "AIRBALL / MISS!";
+                feedbackText.className = "font-display text-4xl font-black uppercase tracking-wider text-rose-400";
+                feedbackSub.textContent = "0 Points. Next Shot Incoming!";
+            }
+
+            // Show Overlay Feedback
+            setTimeout(() => {
+                feedback.classList.remove('opacity-0', 'pointer-events-none');
+            }, 300);
+
+            // Reset for next question
+            setTimeout(() => {
+                feedback.classList.add('opacity-0', 'pointer-events-none');
+                ball.classList.remove('animate-swish', 'animate-miss');
+                generateNewQuestion();
+            }, 1400);
+        }
+
+        function endGame() {
+            clearInterval(state.timerInterval);
+
+            const p1 = state.players[0];
+            const p2 = state.players[1];
+
+            document.getElementById('go-p1-name').textContent = p1.name;
+            document.getElementById('go-p1-score').textContent = p1.score;
+            document.getElementById('go-p1-shots').textContent = `${p1.correct}/${p1.attempts}`;
+            const acc1 = p1.attempts > 0 ? Math.round((p1.correct / p1.attempts) * 100) : 0;
+            document.getElementById('go-p1-acc').textContent = `${acc1}%`;
+
+            document.getElementById('go-p2-name').textContent = p2.name;
+            document.getElementById('go-p2-score').textContent = p2.score;
+            document.getElementById('go-p2-shots').textContent = `${p2.correct}/${p2.attempts}`;
+            const acc2 = p2.attempts > 0 ? Math.round((p2.correct / p2.attempts) * 100) : 0;
+            document.getElementById('go-p2-acc').textContent = `${acc2}%`;
+
+            const title = document.getElementById('winner-title');
+            const sub = document.getElementById('winner-subtitle');
+            const cardP1 = document.getElementById('gameover-card-p1');
+            const cardP2 = document.getElementById('gameover-card-p2');
+
+            if (p1.score > p2.score) {
+                title.textContent = `${p1.name.toUpperCase()} WINS!`;
+                sub.textContent = `Dominating performance with ${p1.score} points vs ${p2.score} points!`;
+                cardP1.className = "bg-slate-900/90 p-5 rounded-2xl border-2 border-amber-500 shadow-xl glow-gold text-center space-y-2";
+                cardP2.className = "bg-slate-900/90 p-5 rounded-2xl border-2 border-slate-800 text-center space-y-2 opacity-75";
+            } else if (p2.score > p1.score) {
+                title.textContent = `${p2.name.toUpperCase()} WINS!`;
+                sub.textContent = `Clutch victory with ${p2.score} points vs ${p1.score} points!`;
+                cardP2.className = "bg-slate-900/90 p-5 rounded-2xl border-2 border-amber-500 shadow-xl glow-gold text-center space-y-2";
+                cardP1.className = "bg-slate-900/90 p-5 rounded-2xl border-2 border-slate-800 text-center space-y-2 opacity-75";
+            } else {
+                title.textContent = "IT'S A DRAW!";
+                sub.textContent = `Both shooters tied at ${p1.score} points! Outstanding math skill!`;
+                cardP1.className = "bg-slate-900/90 p-5 rounded-2xl border-2 border-orange-500 text-center space-y-2";
+                cardP2.className = "bg-slate-900/90 p-5 rounded-2xl border-2 border-orange-500 text-center space-y-2";
+            }
+
+            showScreen('screen-gameover');
+        }
+
+        function restartMatch() {
+            state.players[0].score = 0;
+            state.players[0].attempts = 0;
+            state.players[0].correct = 0;
+
+            state.players[1].score = 0;
+            state.players[1].attempts = 0;
+            state.players[1].correct = 0;
+
+            state.activePlayerIndex = 0;
+            startTurn();
+        }
+
+        function confirmReset() {
+            if (confirm("Are you sure you want to reset the current match?")) {
+                clearInterval(state.timerInterval);
+                showScreen('screen-intro');
+            }
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            showScreen('screen-intro');
+        };
+    </script>
+</body>
+</html>
